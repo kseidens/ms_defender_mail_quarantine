@@ -1,0 +1,20 @@
+# IDE / tool internals
+.agents/
+.gemini/
+*.code-workspace
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+.venv/
+env/
+
+# Test artifacts
+.pytest_cache/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

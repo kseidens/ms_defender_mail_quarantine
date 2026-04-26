@@ -1,0 +1,387 @@
+{
+    "appid": "4b92e349-4245-48b0-a5d9-6fdfc8cfc71c",
+    "name": "MS Quarantine Manager",
+    "description": "Manages Microsoft Defender quarantined emails via an Azure Function wrapper. The Azure Function executes Exchange Online PowerShell cmdlets (Get-QuarantineMessage, Export-QuarantineMessage, Release-QuarantineMessage) on behalf of SOAR Cloud. Supports listing release requests, exporting EML content (Vault or inline base64), approving and denying release requests.",
+    "type": "generic",
+    "product_vendor": "Microsoft",
+    "logo": "ms_quarantine.png",
+    "logo_dark": "ms_quarantine_dark.png",
+    "product_name": "Exchange Online Quarantine",
+    "product_version_regex": ".*",
+    "publisher": "Custom",
+    "license": "Copyright 2024",
+    "app_version": "1.3.0",
+    "utctime_updated": "2024-01-01T00:00:00.000000Z",
+    "package_name": "phantom_ms_quarantine_azfunc",
+    "main_module": "ms_quarantine_connector.py",
+    "min_phantom_version": "6.2.0",
+    "python_version": "3",
+    "app_wizard_used": false,
+    "configuration": {
+        "function_base_url": {
+            "description": "Azure Function base URL without trailing slash. Example: https://contoso-quarantine.azurewebsites.net/api",
+            "data_type": "string",
+            "required": true,
+            "order": 0
+        },
+        "function_key": {
+            "description": "Azure Function key for authentication. Use a Function-level key (recommended) or Host key. Leave empty only if the function auth level is Anonymous.",
+            "data_type": "password",
+            "required": false,
+            "order": 1
+        },
+        "auth_method": {
+            "description": "How to send the function key. 'header' (recommended): x-functions-key HTTP header. 'query': ?code= URL parameter. 'none': no auth (only for Anonymous functions).",
+            "data_type": "string",
+            "required": false,
+            "default": "header",
+            "value_list": ["header", "query", "none"],
+            "order": 2
+        },
+        "verify_ssl": {
+            "description": "Verify the Azure Function SSL certificate. Always true in production.",
+            "data_type": "boolean",
+            "required": false,
+            "default": true,
+            "order": 3
+        },
+        "timeout": {
+            "description": "HTTP request timeout in seconds. PowerShell cold starts and Exchange Online cmdlets are slow. Recommended minimum: 120 seconds.",
+            "data_type": "numeric",
+            "required": false,
+            "default": 120,
+            "order": 4
+        },
+        "export_mode": {
+            "description": "How the 'get quarantine message' action returns the EML. 'vault' (recommended) stores the EML as a file in the SOAR Vault and returns vault_id, sha256, etc - directly usable by file-based apps like ANY.RUN, VirusTotal. 'inline' returns the EML as a base64 string in action_result.data.0.eml - useful when forwarding directly to a third-party HTTP API that does not support the Vault.",
+            "data_type": "string",
+            "required": false,
+            "default": "vault",
+            "value_list": ["vault", "inline"],
+            "order": 5
+        }
+    },
+    "actions": [
+        {
+            "action": "test connectivity",
+            "identifier": "test_connectivity",
+            "description": "Validate connectivity and authentication to the Azure Function",
+            "verbose": "Calls the /health endpoint of the Azure Function to verify the URL is reachable. Does not test Exchange Online connectivity.",
+            "type": "test",
+            "read_only": true,
+            "parameters": {},
+            "output": [],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "list quarantine requests",
+            "identifier": "list_quarantine_requests",
+            "description": "List quarantined emails with ReleaseStatus = Requested",
+            "verbose": "Calls the Azure Function /list endpoint, which executes Get-QuarantineMessage -ReleaseStatus Requested via Exchange Online PowerShell. See https://learn.microsoft.com/en-us/powershell/module/exchangepowershell/get-quarantinemessage",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {},
+            "output": [
+                {
+                    "data_path": "action_result.data.*.Identity",
+                    "data_type": "string",
+                    "example_values": [
+                        "c14401cf-aa9a-465b-cfd5-08d0f0ca37c5\\4c2ca98e-94ea-db3a-7eb8-3b63657d4db7"
+                    ],
+                    "column_name": "Identity",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.SenderAddress",
+                    "data_type": "string",
+                    "example_values": ["sender@example.com"],
+                    "contains": ["email"],
+                    "column_name": "Sender",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.RecipientAddress",
+                    "data_type": "string",
+                    "example_values": ["user@contoso.com"],
+                    "contains": ["email"],
+                    "column_name": "Recipient",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.Subject",
+                    "data_type": "string",
+                    "example_values": ["Important Invoice"],
+                    "column_name": "Subject",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.Type",
+                    "data_type": "string",
+                    "example_values": ["HighConfPhish", "Spam", "Phish", "Malware", "Bulk", "TransportRule"],
+                    "column_name": "Type",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.ReceivedTime",
+                    "data_type": "string",
+                    "example_values": ["2024-01-15T10:23:00Z"],
+                    "column_name": "Received",
+                    "column_order": 5
+                },
+                {
+                    "data_path": "action_result.data.*.Expires",
+                    "data_type": "string",
+                    "example_values": ["2024-01-30T10:23:00Z"],
+                    "column_name": "Expires",
+                    "column_order": 6
+                },
+                {
+                    "data_path": "action_result.data.*.PolicyName",
+                    "data_type": "string",
+                    "example_values": ["Default"],
+                    "column_name": "Policy",
+                    "column_order": 7
+                },
+                {
+                    "data_path": "action_result.data.*.ReleaseStatus",
+                    "data_type": "string",
+                    "example_values": ["REQUESTED"],
+                    "column_name": "Release Status",
+                    "column_order": 8
+                },
+                {
+                    "data_path": "action_result.summary.total_found",
+                    "data_type": "numeric",
+                    "example_values": [3]
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": ["success", "failed"]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": ["Found 3 message(s) with release status 'Requested'"]
+                }
+            ],
+            "render": {
+                "type": "table",
+                "title": "Quarantine Release Requests"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "get quarantine message",
+            "identifier": "get_quarantine_message",
+            "description": "Export a quarantined message. Stores in SOAR Vault by default (use export_mode=inline for base64).",
+            "verbose": "Calls the Azure Function /export/{identity} endpoint, which executes Export-QuarantineMessage -Identity via Exchange Online PowerShell. By default stores the EML as a file in the SOAR Vault and returns vault_id (recommended for use with file-based apps like ANY.RUN, VirusTotal). When export_mode=inline, returns the EML as a base64-encoded string. See https://learn.microsoft.com/en-us/powershell/module/exchangepowershell/export-quarantinemessage",
+            "type": "investigate",
+            "read_only": true,
+            "parameters": {
+                "identity": {
+                    "description": "Quarantine message Identity in format GUID1\\GUID2 (from list quarantine requests output)",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.identity",
+                    "data_type": "string",
+                    "example_values": [
+                        "c14401cf-aa9a-465b-cfd5-08d0f0ca37c5\\4c2ca98e-94ea-db3a-7eb8-3b63657d4db7"
+                    ],
+                    "column_name": "Identity",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.vault_id",
+                    "data_type": "string",
+                    "example_values": ["a1b2c3d4e5f6abcdef1234567890abcdef123456"],
+                    "contains": ["vault id", "sha1"],
+                    "column_name": "Vault ID",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.file_name",
+                    "data_type": "string",
+                    "example_values": ["quarantine_c14401cf.eml"],
+                    "contains": ["file name"],
+                    "column_name": "File Name",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.data.*.size",
+                    "data_type": "numeric",
+                    "example_values": [4521],
+                    "column_name": "Size (bytes)",
+                    "column_order": 3
+                },
+                {
+                    "data_path": "action_result.data.*.sha256",
+                    "data_type": "string",
+                    "example_values": ["e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
+                    "contains": ["sha256"],
+                    "column_name": "SHA256",
+                    "column_order": 4
+                },
+                {
+                    "data_path": "action_result.data.*.sha1",
+                    "data_type": "string",
+                    "example_values": ["da39a3ee5e6b4b0d3255bfef95601890afd80709"],
+                    "contains": ["sha1"]
+                },
+                {
+                    "data_path": "action_result.data.*.md5",
+                    "data_type": "string",
+                    "example_values": ["d41d8cd98f00b204e9800998ecf8427e"],
+                    "contains": ["md5"]
+                },
+                {
+                    "data_path": "action_result.data.*.eml",
+                    "data_type": "string",
+                    "example_values": ["RnJvbTogYXR0YWNrZXJAZXZpbC5jb20NCg=="],
+                    "column_name": "EML (base64, inline mode only)",
+                    "column_order": 5
+                },
+                {
+                    "data_path": "action_result.summary.export_mode",
+                    "data_type": "string",
+                    "example_values": ["vault", "inline"]
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": ["success", "failed"]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": ["Message exported to vault (id: a1b2c3...)"]
+                }
+            ],
+            "render": {
+                "type": "table",
+                "title": "Quarantine Message Export"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "release quarantine message",
+            "identifier": "release_quarantine_message",
+            "description": "Approve and release a quarantined message to all original recipients",
+            "verbose": "Calls the Azure Function /release/{identity} endpoint, which executes Release-QuarantineMessage -Identity <id> -ReleaseToAll via Exchange Online PowerShell. This action is irreversible.",
+            "type": "correct",
+            "read_only": false,
+            "parameters": {
+                "identity": {
+                    "description": "Quarantine message Identity in format GUID1\\GUID2",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.identity",
+                    "data_type": "string",
+                    "example_values": [
+                        "c14401cf-aa9a-465b-cfd5-08d0f0ca37c5\\4c2ca98e-94ea-db3a-7eb8-3b63657d4db7"
+                    ],
+                    "column_name": "Identity",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.status",
+                    "data_type": "string",
+                    "example_values": ["released"],
+                    "column_name": "Status",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.message",
+                    "data_type": "string",
+                    "example_values": ["Message released to all original recipients"],
+                    "column_name": "Message",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": ["success", "failed"]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": ["Message released to all original recipients"]
+                }
+            ],
+            "render": {
+                "type": "table",
+                "title": "Quarantine Release Result"
+            },
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "deny quarantine release",
+            "identifier": "deny_quarantine_release",
+            "description": "Deny a user's request to release a quarantined message",
+            "verbose": "Calls the Azure Function /deny/{identity} endpoint, which executes Release-QuarantineMessage -Identity <id> -ActionType Deny via Exchange Online PowerShell.",
+            "type": "correct",
+            "read_only": false,
+            "parameters": {
+                "identity": {
+                    "description": "Quarantine message Identity in format GUID1\\GUID2",
+                    "data_type": "string",
+                    "required": true,
+                    "primary": true,
+                    "order": 0
+                }
+            },
+            "output": [
+                {
+                    "data_path": "action_result.parameter.identity",
+                    "data_type": "string",
+                    "example_values": [
+                        "c14401cf-aa9a-465b-cfd5-08d0f0ca37c5\\4c2ca98e-94ea-db3a-7eb8-3b63657d4db7"
+                    ],
+                    "column_name": "Identity",
+                    "column_order": 0
+                },
+                {
+                    "data_path": "action_result.data.*.status",
+                    "data_type": "string",
+                    "example_values": ["denied"],
+                    "column_name": "Status",
+                    "column_order": 1
+                },
+                {
+                    "data_path": "action_result.data.*.message",
+                    "data_type": "string",
+                    "example_values": ["Release request denied"],
+                    "column_name": "Message",
+                    "column_order": 2
+                },
+                {
+                    "data_path": "action_result.status",
+                    "data_type": "string",
+                    "example_values": ["success", "failed"]
+                },
+                {
+                    "data_path": "action_result.message",
+                    "data_type": "string",
+                    "example_values": ["Release request denied"]
+                }
+            ],
+            "render": {
+                "type": "table",
+                "title": "Quarantine Deny Result"
+            },
+            "versions": "EQ(*)"
+        }
+    ]
+}
