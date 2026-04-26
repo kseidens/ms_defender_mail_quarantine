@@ -1,4 +1,4 @@
-# MS Quarantine Manager – Splunk SOAR App
+# MS Quarantine Manager â€“ Splunk SOAR App
 
 **Version:** 1.3.0 | **Min SOAR:** 6.2.0 | **Python:** 3
 
@@ -32,13 +32,13 @@ via an Azure Function execution layer. Supports both **SOAR Vault** integration
 
 ```
 Splunk SOAR Cloud
-      │
-      │  HTTPS + function key
-      ▼
+      â”‚
+      â”‚  HTTPS + function key
+      â–¼
 Azure Function (customer's Azure tenant)
-      │
-      │  ExchangeOnlineManagement PowerShell
-      ▼
+      â”‚
+      â”‚  ExchangeOnlineManagement PowerShell
+      â–¼
 Exchange Online / Microsoft Defender
 ```
 
@@ -47,14 +47,14 @@ SOAR Vault by default:
 
 ```
 Azure Function returns base64 EML
-      │
-      ▼
+      â”‚
+      â–¼
 Connector decodes to bytes
-      │
-      ▼ (vault mode, default)
+      â”‚
+      â–¼ (vault mode, default)
 SOAR Vault (vault_id, hashes, size)
-      │
-      ▼
+      â”‚
+      â–¼
 Other apps (ANY.RUN, VirusTotal, Hybrid Analysis...)
 ```
 
@@ -75,7 +75,7 @@ Other apps (ANY.RUN, VirusTotal, Hybrid Analysis...)
 
 | Requirement | Notes |
 |---|---|
-| Splunk SOAR | ≥ 6.2.0 |
+| Splunk SOAR | â‰¥ 6.2.0 |
 | Python | 3 (tested with 3.13) |
 | `requests` | Auto-installed via `pip3_dependencies` in the app manifest |
 | Network | SOAR must be able to reach the Azure Function App URL outbound over TCP 443 |
@@ -86,10 +86,10 @@ Other apps (ANY.RUN, VirusTotal, Hybrid Analysis...)
 
 ## App Installation
 
-1. Download `ms_quarantine_azfunc_v1.3.0.zip` from this repository.
-2. In SOAR, go to **Apps → Install App**.
+1. Download `ms_azure_functions_v1.3.0.zip` from this repository.
+2. In SOAR, go to **Apps â†’ Install App**.
 3. Upload the ZIP file.
-4. After installation, go to **Apps → MS Quarantine Manager → Configure New Asset**.
+4. After installation, go to **Apps â†’ MS Quarantine Manager â†’ Configure New Asset**.
 5. Fill in the asset configuration fields (see next section).
 6. Click **Save** and then **Test Connectivity**.
 
@@ -102,22 +102,22 @@ Other apps (ANY.RUN, VirusTotal, Hybrid Analysis...)
 
 | Field | Required | Default | Description |
 |---|---|---|---|
-| `function_base_url` | ✅ | – | Azure Function App API base URL, **no trailing slash**. Example: `https://contoso-quarantine.azurewebsites.net/api` |
-| `function_key` | ❌ | – | Azure Function key. Leave empty only if the Function auth level is `Anonymous` |
-| `auth_method` | ❌ | `header` | How to send the key: `header` (x-functions-key, recommended), `query` (?code=), or `none` |
-| `verify_ssl` | ❌ | `true` | Verify the Azure Function SSL certificate. Always `true` in production |
-| `timeout` | ❌ | `120` | HTTP timeout in seconds. PowerShell cold starts and EXO cmdlets are slow — minimum 60 s recommended |
-| `export_mode` | ❌ | `vault` | `vault` (recommended) stores EML in SOAR Vault and returns `vault_id`; `inline` returns base64 EML directly |
+| `function_base_url` | âœ… | â€“ | Azure Function App API base URL, **no trailing slash**. Example: `https://contoso-quarantine.azurewebsites.net/api` |
+| `function_key` | âŒ | â€“ | Azure Function key. Leave empty only if the Function auth level is `Anonymous` |
+| `auth_method` | âŒ | `header` | How to send the key: `header` (x-functions-key, recommended), `query` (?code=), or `none` |
+| `verify_ssl` | âŒ | `true` | Verify the Azure Function SSL certificate. Always `true` in production |
+| `timeout` | âŒ | `120` | HTTP timeout in seconds. PowerShell cold starts and EXO cmdlets are slow â€” minimum 60 s recommended |
+| `export_mode` | âŒ | `vault` | `vault` (recommended) stores EML in SOAR Vault and returns `vault_id`; `inline` returns base64 EML directly |
 
 ---
 
 ## Test Connectivity
 
 The **test connectivity** action calls `GET /health` on the Azure Function and
-verifies a `200 OK` response. It does **not** test Exchange Online connectivity —
-only the SOAR → Azure Function leg.
+verifies a `200 OK` response. It does **not** test Exchange Online connectivity â€”
+only the SOAR â†’ Azure Function leg.
 
-To run: **Apps → MS Quarantine Manager → \<your asset\> → Test Connectivity**
+To run: **Apps â†’ MS Quarantine Manager â†’ \<your asset\> â†’ Test Connectivity**
 
 A successful response logs:
 ```
@@ -134,7 +134,7 @@ Successfully connected to Azure Function (service: ms-quarantine-manager)
 |---|---|
 | Type | `test` |
 | Endpoint | `GET /health` |
-| Parameters | — |
+| Parameters | â€” |
 
 ---
 
@@ -145,7 +145,7 @@ Successfully connected to Azure Function (service: ms-quarantine-manager)
 | Type | `investigate` |
 | Endpoint | `GET /list` |
 | PowerShell | `Get-QuarantineMessage -ReleaseStatus Requested` |
-| Parameters | — |
+| Parameters | â€” |
 
 **Output fields:**
 
@@ -155,7 +155,7 @@ Successfully connected to Azure Function (service: ms-quarantine-manager)
 | `action_result.data.*.SenderAddress` | string | Sender email address |
 | `action_result.data.*.RecipientAddress` | string | Recipient email address |
 | `action_result.data.*.Subject` | string | Email subject |
-| `action_result.data.*.Type` | string | Quarantine type (HighConfPhish, Spam, Malware, …) |
+| `action_result.data.*.Type` | string | Quarantine type (HighConfPhish, Spam, Malware, â€¦) |
 | `action_result.data.*.ReceivedTime` | string | ISO 8601 timestamp |
 | `action_result.data.*.Expires` | string | ISO 8601 expiry timestamp |
 | `action_result.data.*.PolicyName` | string | Applied quarantine policy |
@@ -176,7 +176,7 @@ Successfully connected to Azure Function (service: ms-quarantine-manager)
 
 | Name | Required | Description |
 |---|---|---|
-| `identity` | ✅ | Quarantine identity in format `GUID1\GUID2` (from list action output) |
+| `identity` | âœ… | Quarantine identity in format `GUID1\GUID2` (from list action output) |
 
 **Output fields (vault mode):**
 
@@ -209,13 +209,13 @@ Successfully connected to Azure Function (service: ms-quarantine-manager)
 | Endpoint | `POST /release/{identity}` |
 | PowerShell | `Release-QuarantineMessage -Identity <id> -ReleaseToAll` |
 
-> ⚠️ **Irreversible.** The message is delivered to all original recipients immediately.
+> âš ï¸ **Irreversible.** The message is delivered to all original recipients immediately.
 
 **Parameters:**
 
 | Name | Required | Description |
 |---|---|---|
-| `identity` | ✅ | Quarantine identity in format `GUID1\GUID2` |
+| `identity` | âœ… | Quarantine identity in format `GUID1\GUID2` |
 
 ---
 
@@ -231,7 +231,7 @@ Successfully connected to Azure Function (service: ms-quarantine-manager)
 
 | Name | Required | Description |
 |---|---|---|
-| `identity` | ✅ | Quarantine identity in format `GUID1\GUID2` |
+| `identity` | âœ… | Quarantine identity in format `GUID1\GUID2` |
 
 ---
 
@@ -301,67 +301,67 @@ automatically when building request URLs.
 
 ## Example Playbook Flows
 
-### Flow A: Vault mode → ANY.RUN Sandbox
+### Flow A: Vault mode â†’ ANY.RUN Sandbox
 
 ```
 [list quarantine requests]
-        │
-        ▼  for each Identity
+        â”‚
+        â–¼  for each Identity
 [get quarantine message]           (export_mode = vault)
    identity = msg.Identity
-        │
-        ▼
+        â”‚
+        â–¼
    action_result.data[0].vault_id
-        │
-        ▼
+        â”‚
+        â–¼
 [ANY.RUN Cloud Sandbox: detonate file]
    vault_id = <from above>
-        │
-        ▼
+        â”‚
+        â–¼
    Verdict: malicious / suspicious / no threat
-        │
-   ┌────┴────┐
+        â”‚
+   â”Œâ”€â”€â”€â”€â”´â”€â”€â”€â”€â”
  clean   malicious
-   │         │
-   ▼         ▼
+   â”‚         â”‚
+   â–¼         â–¼
 [release]  [deny]
 ```
 
-### Flow B: Inline mode → Custom REST scanner
+### Flow B: Inline mode â†’ Custom REST scanner
 
 ```
 [list quarantine requests]
-        │
-        ▼  for each Identity
+        â”‚
+        â–¼  for each Identity
 [get quarantine message]           (export_mode = inline)
    identity = msg.Identity
-        │
-        ▼
+        â”‚
+        â–¼
    action_result.data[0].eml (base64)
-        │
-        ▼
+        â”‚
+        â–¼
 [HTTP POST: custom-scanner.example.com/v1/scan]
    body: { "eml": "<base64>" }
-        │
-        ▼
-   Verdict → [release] or [deny]
+        â”‚
+        â–¼
+   Verdict â†’ [release] or [deny]
 ```
 
 ### Flow C: Hash-based pre-check (vault mode)
 
 ```
 [get quarantine message]           (export_mode = vault)
-        │
-        ▼
+        â”‚
+        â–¼
    action_result.data[0].sha256
-        │
-        ▼
-[VirusTotal: file reputation]      ── known malicious?
-        │
-   ┌────┴────────────────┐
+        â”‚
+        â–¼
+[VirusTotal: file reputation]      â”€â”€ known malicious?
+        â”‚
+   â”Œâ”€â”€â”€â”€â”´â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
  unknown               known bad
-   │                       │
-   ▼                       ▼
+   â”‚                       â”‚
+   â–¼                       â–¼
 [detonate in sandbox]  [deny without sandboxing]
 ```
 
@@ -390,7 +390,7 @@ automatically when building request URLs.
 
 The function key is missing, wrong, or sent via the wrong method.
 
-1. Open the Azure Function App in the Azure Portal → **Functions → \<function\> → Function Keys**.
+1. Open the Azure Function App in the Azure Portal â†’ **Functions â†’ \<function\> â†’ Function Keys**.
 2. Copy a valid key.
 3. In the SOAR asset, paste the key into `function_key`.
 4. Confirm `auth_method` matches how the Function expects it: `header` (x-functions-key) or `query` (?code=).
@@ -400,7 +400,7 @@ The function key is missing, wrong, or sent via the wrong method.
 SOAR Cloud cannot reach the Azure Function App URL.
 
 1. Confirm the `function_base_url` is correct and accessible from the public internet.
-2. Check the Azure Function App → **Networking** — if inbound access restrictions are set, add the SOAR egress IP(s).
+2. Check the Azure Function App â†’ **Networking** â€” if inbound access restrictions are set, add the SOAR egress IP(s).
 
 ### `get quarantine message` returns "No EML content"
 
@@ -418,7 +418,7 @@ Switch `export_mode` to `inline` in the test JSON, or run via `phenv python3`.
 ### PowerShell cold starts cause timeouts
 
 Azure Functions on a Consumption plan spin down after inactivity. The first call
-after a cold start can take 30–60 s for PowerShell + the ExchangeOnlineManagement
+after a cold start can take 30â€“60 s for PowerShell + the ExchangeOnlineManagement
 module to initialise. Increase `timeout` to 180 s or consider a Premium plan / Always On.
 
 ---
@@ -492,8 +492,8 @@ pytest test_connector.py -v
   }
 }
 
-cd /opt/phantom/apps/phantom_ms_quarantine_azfunc_*/
-phenv python3 ms_quarantine_connector.py /tmp/test_export.json
+cd /opt/phantom/apps/phantom_ms_azure_functions_*/
+phenv python3 ms_azure_functions_connector.py /tmp/test_export.json
 ```
 
 ---
@@ -502,12 +502,12 @@ phenv python3 ms_quarantine_connector.py /tmp/test_export.json
 
 | File | Description |
 |---|---|
-| `ms_quarantine.json` | App manifest (actions, asset config, output schema) |
-| `ms_quarantine_connector.py` | Connector (v1.3.0) |
+| `ms_azure_functions.json` | App manifest (actions, asset config, output schema) |
+| `ms_azure_functions_connector.py` | Connector (v1.3.0) |
 | `test_connector.py` | 48 unit tests (pytest + requests-mock) |
-| `ms_quarantine_azfunc_v1.3.0.zip` | **Installable SOAR app package** — upload this to SOAR |
-| `ms_quarantine.png` | Light theme icon |
-| `ms_quarantine_dark.png` | Dark theme icon |
+| `ms_azure_functions_v1.3.0.zip` | **Installable SOAR app package** â€” upload this to SOAR |
+| `ms_azure_functions.png` | Light theme icon |
+| `ms_azure_functions_dark.png` | Dark theme icon |
 | `__init__.py` | Required by SOAR app packaging (empty) |
 
 ---

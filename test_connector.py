@@ -114,8 +114,8 @@ phrules_stub.Vault     = _VaultStub
 sys.modules["phantom.rules"] = phrules_stub
 
 
-from ms_quarantine_connector import (  # noqa: E402
-    MSQuarantineConnector,
+from ms_azure_functions_connector import (  # noqa: E402
+    MSAzureFunctionsConnector,
     AUTH_HEADER, AUTH_QUERY, AUTH_NONE,
     EXPORT_VAULT, EXPORT_INLINE,
     ENDPOINT_HEALTH, ENDPOINT_LIST,
@@ -143,7 +143,7 @@ EML_HASHES = {
 def make_connector(base_url=BASE_URL, function_key=FUNCTION_KEY,
                    auth_method=AUTH_HEADER, verify_ssl=False, timeout=30,
                    export_mode=EXPORT_VAULT):
-    c = MSQuarantineConnector()
+    c = MSAzureFunctionsConnector()
     c._config = {
         "function_base_url": base_url,
         "function_key":      function_key,
@@ -173,7 +173,7 @@ def reset_vault_adds():
 class TestInitialize:
 
     def test_default_export_mode_is_vault(self):
-        c = MSQuarantineConnector()
+        c = MSAzureFunctionsConnector()
         c._config = {
             "function_base_url": BASE_URL,
             "function_key":      FUNCTION_KEY,
@@ -188,7 +188,7 @@ class TestInitialize:
         assert c._export_mode == EXPORT_INLINE
 
     def test_invalid_export_mode_rejected(self):
-        c = MSQuarantineConnector()
+        c = MSAzureFunctionsConnector()
         c._config = {
             "function_base_url": BASE_URL,
             "function_key":      FUNCTION_KEY,
@@ -200,7 +200,7 @@ class TestInitialize:
         assert c.initialize() == APP_ERROR
 
     def test_http_url_rejected(self):
-        c = MSQuarantineConnector()
+        c = MSAzureFunctionsConnector()
         c._config = {
             "function_base_url": "http://insecure.example.com/api",
             "function_key":      FUNCTION_KEY,
@@ -211,7 +211,7 @@ class TestInitialize:
         assert c.initialize() == APP_ERROR
 
     def test_invalid_auth_method_rejected(self):
-        c = MSQuarantineConnector()
+        c = MSAzureFunctionsConnector()
         c._config = {
             "function_base_url": BASE_URL,
             "function_key":      FUNCTION_KEY,

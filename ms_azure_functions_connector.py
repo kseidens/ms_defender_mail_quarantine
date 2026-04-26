@@ -115,7 +115,7 @@ EML_FIELD_VARIANTS = ("eml", "Eml", "EML")
 # Connector
 # ---------------------------------------------------------------------------
 
-class MSQuarantineConnector(BaseConnector):
+class MSAzureFunctionsConnector(BaseConnector):
     """
     Splunk SOAR connector for Microsoft Defender Quarantine management.
     See module docstring for architecture and references.
@@ -597,7 +597,7 @@ if __name__ == "__main__":
         in_json = f.read()
     in_json = json.loads(in_json)
     print(json.dumps(in_json, indent=4))
-    connector = MSQuarantineConnector()
+    connector = MSAzureFunctionsConnector()
     connector.print_progress_message = True
     connector._handle_action(json.dumps(in_json), None)
     print(json.dumps(json.loads(connector.get_action_results()), indent=4))
