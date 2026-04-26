@@ -1,5 +1,5 @@
 """
-MS Quarantine Manager - Splunk SOAR Custom App
+MS Defender Mail Quarantine - Splunk SOAR Custom App
 ==============================================
 
 Manages Microsoft Defender quarantined emails by calling an Azure Function
@@ -115,7 +115,7 @@ EML_FIELD_VARIANTS = ("eml", "Eml", "EML")
 # Connector
 # ---------------------------------------------------------------------------
 
-class MSAzureFunctionsConnector(BaseConnector):
+class MSDefenderMailQuarantineConnector(BaseConnector):
     """
     Splunk SOAR connector for Microsoft Defender Quarantine management.
     See module docstring for architecture and references.
@@ -342,7 +342,7 @@ class MSAzureFunctionsConnector(BaseConnector):
                 file_location=tmp_path,
                 file_name=file_name,
                 metadata={
-                    "source":   "MS Quarantine Manager",
+                    "source":   "MS Defender Mail Quarantine",
                     "identity": identity,
                 },
             )
@@ -597,7 +597,7 @@ if __name__ == "__main__":
         in_json = f.read()
     in_json = json.loads(in_json)
     print(json.dumps(in_json, indent=4))
-    connector = MSAzureFunctionsConnector()
+    connector = MSDefenderMailQuarantineConnector()
     connector.print_progress_message = True
     connector._handle_action(json.dumps(in_json), None)
     print(json.dumps(json.loads(connector.get_action_results()), indent=4))
