@@ -31,13 +31,15 @@
             "description": "Azure Function base URL without trailing slash. Example: https://contoso-quarantine.azurewebsites.net/api",
             "data_type": "string",
             "required": true,
-            "order": 0
+            "order": 0,
+            "category": "connectivity"
         },
         "function_key": {
             "description": "Azure Function key for authentication. Use a Function-level key (recommended) or Host key. Leave empty only if the function auth level is Anonymous.",
             "data_type": "password",
             "required": false,
-            "order": 1
+            "order": 1,
+            "category": "connectivity"
         },
         "auth_method": {
             "description": "How to send the function key. 'header' (recommended): x-functions-key HTTP header. 'query': ?code= URL parameter. 'none': no auth (only for Anonymous functions).",
@@ -45,21 +47,24 @@
             "required": false,
             "default": "header",
             "value_list": ["header", "query", "none"],
-            "order": 2
+            "order": 2,
+            "category": "connectivity"
         },
         "verify_ssl": {
             "description": "Verify the Azure Function SSL certificate. Always true in production.",
             "data_type": "boolean",
             "required": false,
             "default": true,
-            "order": 3
+            "order": 3,
+            "category": "connectivity"
         },
         "timeout": {
             "description": "HTTP request timeout in seconds. PowerShell cold starts and Exchange Online cmdlets are slow. Recommended minimum: 120 seconds.",
             "data_type": "numeric",
             "required": false,
             "default": 120,
-            "order": 4
+            "order": 4,
+            "category": "connectivity"
         },
         "export_mode": {
             "description": "How the 'get quarantine message' action returns the EML. 'vault' (recommended) stores the EML as a file in the SOAR Vault and returns vault_id, sha256, etc - directly usable by file-based apps like ANY.RUN, VirusTotal. 'inline' returns the EML as a base64 string in action_result.data.0.eml - useful when forwarding directly to a third-party HTTP API that does not support the Vault.",
@@ -67,7 +72,8 @@
             "required": false,
             "default": "vault",
             "value_list": ["vault", "inline"],
-            "order": 5
+            "order": 5,
+            "category": "connectivity"
         }
     },
     "actions": [
