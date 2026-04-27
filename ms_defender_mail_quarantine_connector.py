@@ -599,6 +599,6 @@ if __name__ == "__main__":
     print(json.dumps(in_json, indent=4))
     connector = MSDefenderMailQuarantineConnector()
     connector.print_progress_message = True
-    connector._handle_action(json.dumps(in_json), None)
+    ret_val = connector._handle_action(json.dumps(in_json), None)
     print(json.dumps(json.loads(connector.get_action_results()), indent=4))
-    sys.exit(0)
+    sys.exit(0 if phantom.APP_SUCCESS == ret_val else 1)
